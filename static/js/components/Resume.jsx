@@ -2,11 +2,13 @@ const Resume = ({ onUpload }) => {
     const [file, setFile] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
     const [preview, setPreview] = React.useState('');
+    const [error, setError] = React.useState('');
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile && selectedFile.name.endsWith('.html')) {
             setFile(selectedFile);
+            setError('');
             // Read and preview the HTML content
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -14,7 +16,7 @@ const Resume = ({ onUpload }) => {
             };
             reader.readAsText(selectedFile);
         } else {
-            alert('Please select an HTML file');
+            setError('Please select an HTML file');
             e.target.value = '';
         }
     };
@@ -22,27 +24,34 @@ const Resume = ({ onUpload }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!file) {
-            alert('Please select an HTML resume file');
+            setError('Please select an HTML resume file');
             return;
         }
 
         setLoading(true);
+        setError('');
         try {
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const html_content = e.target.result;
-                const response = await axios.post('/api/resume/upload', {
-                    html_content: html_content
-                });
+                try {
+                    const response = await axios.post('/api/resume/upload', {
+                        html_content: html_content
+                    });
 
-                onUpload({
-                    id: response.data.id,
-                    content: html_content
-                });
+                    onUpload({
+                        id: response.data.id,
+                        content: html_content
+                    });
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    setError(error.response?.data?.error || 'Error uploading resume');
+                }
             };
             reader.readAsText(file);
         } catch (error) {
-            alert('Error uploading resume');
+            console.error('File reading error:', error);
+            setError('Error reading the file');
         } finally {
             setLoading(false);
         }
@@ -52,6 +61,12 @@ const Resume = ({ onUpload }) => {
         <div className="card">
             <div className="card-body">
                 <h2 className="card-title mb-4">Upload Resume</h2>
+
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
@@ -83,6 +98,7 @@ const Resume = ({ onUpload }) => {
                                         backgroundColor: 'white'
                                     }}
                                     title="Resume Preview"
+                                    sandbox="allow-same-origin"
                                 />
                             </div>
                         </div>

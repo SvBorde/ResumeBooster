@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
@@ -25,7 +25,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 db.init_app(app)
 
 login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
+login_manager.login_view = None  # Disable redirect for API routes
 login_manager.init_app(app)
 
 from models import User
@@ -36,6 +36,10 @@ from resume_handler import resume as resume_blueprint
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({'error': 'Unauthorized'}), 401
 
 @app.route('/')
 def index():
