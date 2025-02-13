@@ -1,4 +1,4 @@
-export const JobAnalysis = ({ resumeData, onAnalysis }) => {
+const JobAnalysis = ({ resumeData, onAnalysis }) => {
     const [jobDescription, setJobDescription] = React.useState('');
     const [analysis, setAnalysis] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
@@ -138,3 +138,5 @@ export const JobAnalysis = ({ resumeData, onAnalysis }) => {
         </div>
     );
 };
+
+window.JobAnalysis = JobAnalysis;

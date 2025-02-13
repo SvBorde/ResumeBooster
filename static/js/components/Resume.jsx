@@ -61,3 +61,5 @@ export const Resume = ({ onUpload }) => {
         </div>
     );
 };
+
+window.Resume = Resume;

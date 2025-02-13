@@ -1,4 +1,4 @@
-export const Login = ({ onLogin }) => {
+const Login = ({ onLogin }) => {
     const [isLogin, setIsLogin] = React.useState(true);
     const [formData, setFormData] = React.useState({
         email: '',
@@ -88,7 +88,10 @@ export const Login = ({ onLogin }) => {
 
                     <p className="text-center">
                         {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        <a href="#" onClick={() => setIsLogin(!isLogin)}>
+                        <a href="#" onClick={(e) => {
+                            e.preventDefault();
+                            setIsLogin(!isLogin);
+                        }}>
                             {isLogin ? 'Register' : 'Login'}
                         </a>
                     </p>
@@ -97,3 +100,5 @@ export const Login = ({ onLogin }) => {
         </div>
     );
 };
+
+window.Login = Login;
