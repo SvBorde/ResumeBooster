@@ -1,20 +1,45 @@
-export const Resume = ({ onUpload }) => {
-    const [latex, setLatex] = React.useState('');
+const Resume = ({ onUpload }) => {
+    const [file, setFile] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
+    const [preview, setPreview] = React.useState('');
+
+    const handleFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile && selectedFile.name.endsWith('.tex')) {
+            setFile(selectedFile);
+            // Read and preview the file content
+            const reader = new FileReader();
+            reader.onload = (e) => setPreview(e.target.result);
+            reader.readAsText(selectedFile);
+        } else {
+            alert('Please select a .tex file');
+            e.target.value = '';
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!file) {
+            alert('Please select a LaTeX file');
+            return;
+        }
+
         setLoading(true);
-
         try {
-            const response = await axios.post('/api/resume/upload', {
-                latex_content: latex
-            });
+            // Read file content
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const latex_content = e.target.result;
+                const response = await axios.post('/api/resume/upload', {
+                    latex_content: latex_content
+                });
 
-            onUpload({
-                id: response.data.id,
-                content: latex
-            });
+                onUpload({
+                    id: response.data.id,
+                    content: latex_content
+                });
+            };
+            reader.readAsText(file);
         } catch (error) {
             alert('Error uploading resume');
         } finally {
@@ -30,22 +55,35 @@ export const Resume = ({ onUpload }) => {
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label className="form-label">
-                            Paste your LaTeX Resume Content
+                            Upload your LaTeX Resume File (.tex)
                         </label>
-                        <textarea
+                        <input
+                            type="file"
                             className="form-control"
-                            rows="10"
-                            value={latex}
-                            onChange={(e) => setLatex(e.target.value)}
-                            placeholder="Paste your LaTeX resume content here..."
+                            accept=".tex"
+                            onChange={handleFileChange}
                             required
                         />
+                        <small className="text-muted">
+                            Only .tex files are supported
+                        </small>
                     </div>
+
+                    {preview && (
+                        <div className="mb-3">
+                            <label className="form-label">Preview:</label>
+                            <div className="resume-preview">
+                                <pre className="text-light">
+                                    {preview.slice(0, 200)}...
+                                </pre>
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         type="submit"
                         className="btn btn-primary w-100"
-                        disabled={loading}
+                        disabled={loading || !file}
                     >
                         {loading ? (
                             <span>

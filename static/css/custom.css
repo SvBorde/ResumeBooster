@@ -9,6 +9,14 @@
     padding: 1.5rem;
     border-radius: 0.5rem;
     margin: 1rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.resume-preview pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .skills-list {
