@@ -4,6 +4,7 @@ const JobAnalysis = ({ resumeData, onAnalysis }) => {
     const [loading, setLoading] = React.useState(false);
     const [selectedSkills, setSelectedSkills] = React.useState([]);
     const [enhancing, setEnhancing] = React.useState(false);
+    const [enhancedResume, setEnhancedResume] = React.useState(null);
 
     const analyzeJob = async (e) => {
         e.preventDefault();
@@ -33,20 +34,60 @@ const JobAnalysis = ({ resumeData, onAnalysis }) => {
                 selected_skills: selectedSkills
             });
 
-            const blob = new Blob([response.data.enhanced_content], {
-                type: 'application/x-latex'
-            });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'enhanced_resume.tex';
-            a.click();
+            setEnhancedResume(response.data);
         } catch (error) {
             alert('Error enhancing resume');
         } finally {
             setEnhancing(false);
         }
     };
+
+    const downloadLatex = () => {
+        if (!enhancedResume) return;
+
+        const blob = new Blob([enhancedResume.enhanced_content], {
+            type: 'application/x-latex'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'enhanced_resume.tex';
+        a.click();
+    };
+
+    const renderSkillSection = (title, skills, isSelectable = false) => (
+        <div className="mb-4">
+            <h4 className="mb-3">{title}</h4>
+            <div className="skills-list">
+                {skills.map((skill, index) => (
+                    isSelectable ? (
+                        <div key={index} className="form-check skill-checkbox">
+                            <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id={`skill-${index}`}
+                                checked={selectedSkills.includes(skill)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setSelectedSkills([...selectedSkills, skill]);
+                                    } else {
+                                        setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                                    }
+                                }}
+                            />
+                            <label className="form-check-label" htmlFor={`skill-${index}`}>
+                                {skill}
+                            </label>
+                        </div>
+                    ) : (
+                        <span key={index} className="skill-tag">
+                            {skill}
+                        </span>
+                    )
+                ))}
+            </div>
+        </div>
+    );
 
     return (
         <div className="card">
@@ -80,58 +121,64 @@ const JobAnalysis = ({ resumeData, onAnalysis }) => {
                 {analysis && (
                     <div className="analysis-results">
                         <div className="match-percentage text-center mb-4">
-                            {Math.round(analysis.match_percentage)}% Match
-                        </div>
-
-                        <div className="matched-skills mb-4">
-                            <h4>Matched Skills</h4>
-                            <div className="skills-list">
-                                {analysis.matched_skills.map((skill, index) => (
-                                    <span key={index} className="skill-tag">
-                                        {skill}
-                                    </span>
-                                ))}
+                            <div className="display-4">
+                                {Math.round(analysis.match_percentage)}%
                             </div>
+                            <div className="text-muted">Match Score</div>
                         </div>
 
-                        <div className="missing-skills mb-4">
-                            <h4>Missing Skills</h4>
-                            <div className="skills-list">
-                                {analysis.missing_skills.map((skill, index) => (
-                                    <div key={index} className="form-check">
-                                        <input
-                                            type="checkbox"
-                                            className="form-check-input"
-                                            id={`skill-${index}`}
-                                            checked={selectedSkills.includes(skill)}
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setSelectedSkills([...selectedSkills, skill]);
-                                                } else {
-                                                    setSelectedSkills(selectedSkills.filter(
-                                                        s => s !== skill
-                                                    ));
-                                                }
-                                            }}
-                                        />
-                                        <label
-                                            className="form-check-label"
-                                            htmlFor={`skill-${index}`}
-                                        >
-                                            {skill}
-                                        </label>
+                        {renderSkillSection('Matched Technical Skills', analysis.matched_technical_skills)}
+                        {renderSkillSection('Matched Qualifications', analysis.matched_qualifications)}
+                        {renderSkillSection('Missing Technical Skills', analysis.missing_technical_skills, true)}
+                        {renderSkillSection('Missing Qualifications', analysis.missing_qualifications, true)}
+
+                        <div className="d-grid gap-2">
+                            <button
+                                className="btn btn-success"
+                                onClick={enhanceResume}
+                                disabled={enhancing || selectedSkills.length === 0}
+                            >
+                                {enhancing ? 'Enhancing...' : 'Enhance Resume'}
+                            </button>
+
+                            {enhancedResume && (
+                                <>
+                                    <div className="card mt-4">
+                                        <div className="card-body">
+                                            <h5 className="card-title">Changes Made</h5>
+                                            <ul className="list-unstyled">
+                                                {enhancedResume.changes_made.map((change, index) => (
+                                                    <li key={index} className="mb-2">
+                                                        <i className="fas fa-check-circle text-success me-2"></i>
+                                                        {change}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        <button
-                            className="btn btn-success w-100"
-                            onClick={enhanceResume}
-                            disabled={enhancing || selectedSkills.length === 0}
-                        >
-                            {enhancing ? 'Enhancing...' : 'Enhance Resume'}
-                        </button>
+                                    <div className="card mt-4">
+                                        <div className="card-body">
+                                            <h5 className="card-title">Preview</h5>
+                                            <div 
+                                                className="resume-preview"
+                                                dangerouslySetInnerHTML={{ 
+                                                    __html: enhancedResume.html_preview 
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        className="btn btn-primary mt-3"
+                                        onClick={downloadLatex}
+                                    >
+                                        <i className="fas fa-download me-2"></i>
+                                        Download Enhanced Resume
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
