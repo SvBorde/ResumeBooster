@@ -1,0 +1,53 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.resume-preview {
+    background: var(--bs-dark);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.skill-tag {
+    background: var(--bs-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+}
+
+.progress-indicator {
+    height: 4px;
+    background: var(--bs-primary);
+    transition: width 0.3s ease;
+}
+
+.match-percentage {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--bs-info);
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--bs-secondary);
+    border-top-color: var(--bs-primary);
+    border-radius: 50%;
+    animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
