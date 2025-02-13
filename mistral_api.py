@@ -20,7 +20,7 @@ def analyze_job_description(resume_content: str, job_description: str) -> Dict:
     4. Missing technical skills from job description
     5. Missing qualifications and requirements from job description
 
-    Resume:
+    Resume (HTML content):
     {resume_content}
 
     Job Description:
@@ -70,22 +70,22 @@ def enhance_resume(resume_content: str, skills: List[str]) -> Dict[str, str]:
     }
 
     prompt = f"""
-    Enhance the following LaTeX resume by incorporating these skills/qualifications:
+    Enhance the following HTML resume by incorporating these skills/qualifications:
     {', '.join(skills)}
 
-    Original Resume:
+    Original Resume (HTML):
     {resume_content}
 
     Rules:
-    1. Maintain LaTeX formatting and structure
+    1. Maintain proper HTML structure and formatting
     2. Add skills naturally to relevant sections
     3. Don't remove existing content
     4. Keep the enhancement subtle and professional
     5. Return the response in this JSON format:
     {{
-        "enhanced_content": "The complete enhanced LaTeX content",
+        "enhanced_content": "The complete enhanced HTML content",
         "changes_made": ["List of specific changes made"],
-        "html_preview": "The resume content converted to clean HTML for preview"
+        "preview_sections": ["List of sections that were modified"]
     }}
     """
 

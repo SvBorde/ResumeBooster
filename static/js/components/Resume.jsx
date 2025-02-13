@@ -5,14 +5,16 @@ const Resume = ({ onUpload }) => {
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-        if (selectedFile && selectedFile.name.endsWith('.tex')) {
+        if (selectedFile && selectedFile.name.endsWith('.html')) {
             setFile(selectedFile);
-            // Read and preview the file content
+            // Read and preview the HTML content
             const reader = new FileReader();
-            reader.onload = (e) => setPreview(e.target.result);
+            reader.onload = (e) => {
+                setPreview(e.target.result);
+            };
             reader.readAsText(selectedFile);
         } else {
-            alert('Please select a .tex file');
+            alert('Please select an HTML file');
             e.target.value = '';
         }
     };
@@ -20,23 +22,22 @@ const Resume = ({ onUpload }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!file) {
-            alert('Please select a LaTeX file');
+            alert('Please select an HTML resume file');
             return;
         }
 
         setLoading(true);
         try {
-            // Read file content
             const reader = new FileReader();
             reader.onload = async (e) => {
-                const latex_content = e.target.result;
+                const html_content = e.target.result;
                 const response = await axios.post('/api/resume/upload', {
-                    latex_content: latex_content
+                    html_content: html_content
                 });
 
                 onUpload({
                     id: response.data.id,
-                    content: latex_content
+                    content: html_content
                 });
             };
             reader.readAsText(file);
@@ -55,17 +56,17 @@ const Resume = ({ onUpload }) => {
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label className="form-label">
-                            Upload your LaTeX Resume File (.tex)
+                            Upload your Resume HTML File (.html)
                         </label>
                         <input
                             type="file"
                             className="form-control"
-                            accept=".tex"
+                            accept=".html"
                             onChange={handleFileChange}
                             required
                         />
                         <small className="text-muted">
-                            Only .tex files are supported
+                            Only HTML files are supported
                         </small>
                     </div>
 
@@ -73,9 +74,16 @@ const Resume = ({ onUpload }) => {
                         <div className="mb-3">
                             <label className="form-label">Preview:</label>
                             <div className="resume-preview">
-                                <pre className="text-light">
-                                    {preview.slice(0, 200)}...
-                                </pre>
+                                <iframe
+                                    srcDoc={preview}
+                                    style={{
+                                        width: '100%',
+                                        height: '400px',
+                                        border: 'none',
+                                        backgroundColor: 'white'
+                                    }}
+                                    title="Resume Preview"
+                                />
                             </div>
                         </div>
                     )}

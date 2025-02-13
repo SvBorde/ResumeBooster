@@ -42,16 +42,16 @@ const JobAnalysis = ({ resumeData, onAnalysis }) => {
         }
     };
 
-    const downloadLatex = () => {
+    const downloadHtml = () => {
         if (!enhancedResume) return;
 
         const blob = new Blob([enhancedResume.enhanced_content], {
-            type: 'application/x-latex'
+            type: 'text/html'
         });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'enhanced_resume.tex';
+        a.download = 'enhanced_resume.html';
         a.click();
     };
 
@@ -159,19 +159,25 @@ const JobAnalysis = ({ resumeData, onAnalysis }) => {
 
                                     <div className="card mt-4">
                                         <div className="card-body">
-                                            <h5 className="card-title">Preview</h5>
-                                            <div 
-                                                className="resume-preview"
-                                                dangerouslySetInnerHTML={{ 
-                                                    __html: enhancedResume.html_preview 
-                                                }}
-                                            />
+                                            <h5 className="card-title">Resume Preview</h5>
+                                            <div className="resume-preview">
+                                                <iframe
+                                                    srcDoc={enhancedResume.enhanced_content}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '600px',
+                                                        border: 'none',
+                                                        backgroundColor: 'white'
+                                                    }}
+                                                    title="Enhanced Resume Preview"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
                                     <button
                                         className="btn btn-primary mt-3"
-                                        onClick={downloadLatex}
+                                        onClick={downloadHtml}
                                     >
                                         <i className="fas fa-download me-2"></i>
                                         Download Enhanced Resume

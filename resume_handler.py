@@ -10,12 +10,12 @@ resume = Blueprint('resume', __name__)
 @login_required
 def upload_resume():
     data = request.get_json()
-    latex_content = data.get('latex_content')
+    html_content = data.get('html_content')
 
-    if not latex_content:
-        return jsonify({'error': 'No LaTeX content provided'}), 400
+    if not html_content:
+        return jsonify({'error': 'No HTML content provided'}), 400
 
-    resume = Resume(user_id=current_user.id, latex_content=latex_content)
+    resume = Resume(user_id=current_user.id, html_content=html_content)
     db.session.add(resume)
     db.session.commit()
 
@@ -33,14 +33,14 @@ def analyze_resume():
     if resume.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
 
-    analysis = analyze_job_description(resume.latex_content, job_description)
+    analysis = analyze_job_description(resume.html_content, job_description)
 
     job_analysis = JobAnalysis(
         resume_id=resume_id,
         job_description=job_description,
         match_percentage=analysis['match_percentage'],
-        matched_skills=json.dumps(analysis['matched_skills']),
-        missing_skills=json.dumps(analysis['missing_skills'])
+        matched_skills=analysis['matched_skills'],
+        missing_skills=analysis['missing_skills']
     )
 
     db.session.add(job_analysis)
@@ -60,10 +60,10 @@ def enhance_resume_route():
     if resume.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
 
-    enhanced_result = enhance_resume(resume.latex_content, selected_skills)
+    enhanced_result = enhance_resume(resume.html_content, selected_skills)
 
     # Update the resume with enhanced content
-    resume.latex_content = enhanced_result['enhanced_content']
+    resume.html_content = enhanced_result['enhanced_content']
     db.session.commit()
 
     return jsonify(enhanced_result), 200
