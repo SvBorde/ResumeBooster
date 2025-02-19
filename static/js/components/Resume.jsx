@@ -3,22 +3,56 @@ const Resume = ({ onUpload }) => {
     const [loading, setLoading] = React.useState(false);
     const [preview, setPreview] = React.useState('');
     const [error, setError] = React.useState('');
+    const maxFileSize = 16 * 1024 * 1024; // 16MB in bytes
+
+    const validateFile = (file) => {
+        if (!file.name.endsWith('.html')) {
+            return 'Please select an HTML file';
+        }
+        if (file.size > maxFileSize) {
+            return 'File size exceeds 16MB limit';
+        }
+        return null;
+    };
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-        if (selectedFile && selectedFile.name.endsWith('.html')) {
-            setFile(selectedFile);
-            setError('');
-            // Read and preview the HTML content
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreview(e.target.result);
-            };
-            reader.readAsText(selectedFile);
-        } else {
-            setError('Please select an HTML file');
+        if (!selectedFile) return;
+
+        const validationError = validateFile(selectedFile);
+        if (validationError) {
+            setError(validationError);
             e.target.value = '';
+            setFile(null);
+            setPreview('');
+            return;
         }
+
+        setFile(selectedFile);
+        setError('');
+
+        // Read and preview the HTML content
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const content = e.target.result;
+                // Basic HTML validation
+                if (!content.includes('<!DOCTYPE html>') && !content.includes('<html')) {
+                    throw new Error('Invalid HTML format');
+                }
+                setPreview(content);
+            } catch (error) {
+                setError('Invalid HTML file format');
+                setPreview('');
+                setFile(null);
+            }
+        };
+        reader.onerror = () => {
+            setError('Error reading file');
+            setPreview('');
+            setFile(null);
+        };
+        reader.readAsText(selectedFile);
     };
 
     const handleSubmit = async (e) => {
@@ -48,6 +82,9 @@ const Resume = ({ onUpload }) => {
                     setError(error.response?.data?.error || 'Error uploading resume');
                 }
             };
+            reader.onerror = () => {
+                setError('Error reading file');
+            };
             reader.readAsText(file);
         } catch (error) {
             console.error('File reading error:', error);
@@ -64,6 +101,7 @@ const Resume = ({ onUpload }) => {
 
                 {error && (
                     <div className="alert alert-danger" role="alert">
+                        <i className="fas fa-exclamation-circle me-2"></i>
                         {error}
                     </div>
                 )}
@@ -73,15 +111,22 @@ const Resume = ({ onUpload }) => {
                         <label className="form-label">
                             Upload your Resume HTML File (.html)
                         </label>
-                        <input
-                            type="file"
-                            className="form-control"
-                            accept=".html"
-                            onChange={handleFileChange}
-                            required
-                        />
-                        <small className="text-muted">
-                            Only HTML files are supported
+                        <div className="input-group">
+                            <input
+                                type="file"
+                                className="form-control"
+                                accept=".html"
+                                onChange={handleFileChange}
+                                required
+                            />
+                            {file && (
+                                <span className="input-group-text">
+                                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                                </span>
+                            )}
+                        </div>
+                        <small className="text-muted d-block mt-1">
+                            Only HTML files up to 16MB are supported
                         </small>
                     </div>
 
@@ -115,7 +160,10 @@ const Resume = ({ onUpload }) => {
                                 Uploading...
                             </span>
                         ) : (
-                            'Upload Resume'
+                            <>
+                                <i className="fas fa-upload me-2"></i>
+                                Upload Resume
+                            </>
                         )}
                     </button>
                 </form>
